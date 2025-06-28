@@ -1,0 +1,40 @@
+﻿@model BTL.Models.Event
+
+@{
+    ViewData["Title"] = "Event Details";
+}
+
+<div class="container mt-5">
+    <h1 class="display-4 text-center mb-4">Event Details</h1>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">Event Information</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-3 fw-bold">@Html.DisplayNameFor(model => model.Name)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Name)</dd>
+                <dt class="col-sm-3 fw-bold">@Html.DisplayNameFor(model => model.DateTime)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.DateTime)</dd>
+                <dt class="col-sm-3 fw-bold">@Html.DisplayNameFor(model => model.Description)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Description)</dd>
+                <dt class="col-sm-3 fw-bold">@Html.DisplayNameFor(model => model.Location)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Location)</dd>
+                <dt class="col-sm-3 fw-bold">@Html.DisplayNameFor(model => model.ImagePath)</dt>
+                <dd class="col-sm-9">
+                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+                    {
+                        <img src="@Model.ImagePath" alt="Event Image" class="img-fluid" style="max-width:250px; height:auto;" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">No image available</span>
+                    }
+                </dd>
+            </dl>
+            <div class="d-flex justify-content-start gap-2">
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">Edit</a>
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+            </div>
+        </div>
+    </div>
+</div>
