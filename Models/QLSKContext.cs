@@ -9,6 +9,10 @@ namespace BTL.Models
         {
         }
 
-        public DbSet<Event> Events { get; set; } // Đại diện cho bảng Events trong cơ sở dữ liệu của bạn
+        public DbSet<Event> Events { get; set; }
+        public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
     }
 }

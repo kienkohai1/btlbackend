@@ -25,7 +25,7 @@ namespace BTL.Models
 
         [Display(Name = "Hình ảnh")]
         public string? ImagePath { get; set; } // Đường dẫn lưu trữ hình ảnh (có thể null)
-
+        public List<Ticket> Tickets { get; set; }
         [NotMapped]
         [Display(Name = "Chọn hình ảnh")]
         public IFormFile? ImageFile { get; set; }

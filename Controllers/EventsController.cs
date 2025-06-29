@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BTL.Models;
-using Microsoft.AspNetCore.Hosting; // Đã thêm: Cần thiết để truy cập wwwroot
-using System.IO; // Đã thêm: Cần thiết để thao tác với file hệ thống
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
+using BTL.ViewModels;
 
 namespace BTL.Controllers
 {
@@ -29,7 +30,6 @@ namespace BTL.Controllers
             return View(await _context.Events.ToListAsync());
         }
 
-        // GET: Events/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -37,16 +37,22 @@ namespace BTL.Controllers
                 return NotFound();
             }
 
-            var @event = await _context.Events
+            // Lấy thông tin sự kiện từ database
+            var anEvent = await _context.Events
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (@event == null)
+
+            if (anEvent == null)
             {
                 return NotFound();
             }
 
-            return View(@event);
-        }
+            ViewData["Tickets"] = await _context.Tickets
+                                                .Where(t => t.EventId == id)
+                                                .ToListAsync();
 
+            // Trả về View với model là đối tượng Event
+            return View(anEvent);
+        }
         // GET: Events/Create
         public IActionResult Create()
         {
@@ -99,6 +105,7 @@ namespace BTL.Controllers
         }
 
         // GET: Events/Edit/5
+        // Phương thức này lấy dữ liệu sự kiện và danh sách vé để hiển thị trên form chỉnh sửa.
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -106,20 +113,33 @@ namespace BTL.Controllers
                 return NotFound();
             }
 
-            var @event = await _context.Events.FindAsync(id);
-            if (@event == null)
+            var anEvent = await _context.Events.FindAsync(id);
+            if (anEvent == null)
             {
+                // Không tìm thấy sự kiện, trả về trang 404 Not Found.
                 return NotFound();
             }
-            return View(@event);
+
+            // Tải danh sách các vé thuộc về sự kiện này.
+            var tickets = await _context.Tickets
+                                        .Where(t => t.EventId == id)
+                                        .ToListAsync();
+
+            // Tạo một ViewModel để đóng gói tất cả dữ liệu cần thiết cho View.
+            var viewModel = new EventEditViewModel
+            {
+                Event = anEvent,
+                Tickets = tickets
+            };
+
+            return View(viewModel);
         }
 
         // POST: Events/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // Phương thức này xử lý dữ liệu được gửi từ form chỉnh sửa.
+        // Nó bảo mật, xử lý tệp tin và cập nhật thông tin vào cơ sở dữ liệu.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // Đã cập nhật: Thêm "ImagePath" và "ImageFile" vào thuộc tính Bind
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,DateTime,Description,Location,ImagePath,ImageFile")] Event @event)
         {
             if (id != @event.Id)
@@ -127,20 +147,26 @@ namespace BTL.Controllers
                 return NotFound();
             }
 
+            // ModelState.IsValid kiểm tra xem dữ liệu gửi lên có hợp lệ không
+            // (dựa trên các DataAnnotations trong Model 'Event').
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Đã thêm: Lấy thông tin Event hiện tại từ DB để giữ lại ImagePath cũ nếu không có file mới
-                    // Sử dụng AsNoTracking() để tránh xung đột tracking khi cập nhật
+                    // Lấy thông tin sự kiện hiện tại từ DB mà không theo dõi nó
+                    // để giữ lại ImagePath cũ nếu không có file mới được tải lên.
                     var existingEvent = await _context.Events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-
-                    if (@event.ImageFile != null) // Nếu có file mới được tải lên
+                    if (existingEvent == null)
                     {
-                        // Xóa hình ảnh cũ nếu tồn tại
+                        return NotFound();
+                    }
+
+                    // Kiểm tra xem người dùng có tải lên file ảnh mới không.
+                    if (@event.ImageFile != null)
+                    {
+                        // Nếu có ảnh cũ, tiến hành xóa nó khỏi server.
                         if (!string.IsNullOrEmpty(existingEvent.ImagePath))
                         {
-                            // Tạo đường dẫn đầy đủ đến file cũ trong wwwroot
                             string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, existingEvent.ImagePath.TrimStart('/'));
                             if (System.IO.File.Exists(oldFilePath))
                             {
@@ -148,7 +174,7 @@ namespace BTL.Controllers
                             }
                         }
 
-                        // Tải lên hình ảnh mới (giống như trong Create)
+                        // Tải lên hình ảnh mới (logic giống như trong action Create).
                         string uniqueFileName = Guid.NewGuid().ToString() + "_" + @event.ImageFile.FileName;
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images");
                         if (!Directory.Exists(uploadsFolder))
@@ -161,10 +187,12 @@ namespace BTL.Controllers
                         {
                             await @event.ImageFile.CopyToAsync(fileStream);
                         }
-                        @event.ImagePath = "/images/" + uniqueFileName; // Cập nhật đường dẫn hình ảnh mới
+                        // Cập nhật đường dẫn hình ảnh mới vào đối tượng event.
+                        @event.ImagePath = "/images/" + uniqueFileName;
                     }
-                    else // Nếu không có file mới được tải lên, giữ lại ImagePath cũ từ existingEvent
+                    else
                     {
+                        // Nếu không có file mới được tải lên, giữ lại đường dẫn ảnh cũ.
                         @event.ImagePath = existingEvent.ImagePath;
                     }
 
@@ -173,6 +201,7 @@ namespace BTL.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
+                    // Xử lý trường hợp có xung đột khi cập nhật dữ liệu (ví dụ: người khác đã xóa event này).
                     if (!EventExists(@event.Id))
                     {
                         return NotFound();
@@ -182,9 +211,25 @@ namespace BTL.Controllers
                         throw;
                     }
                 }
+                // Nếu thành công, chuyển hướng về trang danh sách sự kiện.
                 return RedirectToAction(nameof(Index));
             }
-            return View(@event);
+
+            // Nếu ModelState không hợp lệ (người dùng nhập thiếu/sai dữ liệu):
+            // Tải lại danh sách vé để hiển thị lại form một cách đầy đủ.
+            var tickets = await _context.Tickets
+                                    .Where(t => t.EventId == id)
+                                    .ToListAsync();
+
+            // Đóng gói lại ViewModel với dữ liệu người dùng đã nhập và danh sách vé.
+            var viewModel = new EventEditViewModel
+            {
+                Event = @event,
+                Tickets = tickets
+            };
+
+            // Trả về View với ViewModel để người dùng có thể sửa lại lỗi.
+            return View(viewModel);
         }
 
         // GET: Events/Delete/5

@@ -1,0 +1,34 @@
+﻿@model BTL.ViewModels.ShoppingCartViewModel
+
+<h2>Giỏ hàng của bạn</h2>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Số lượng</th>
+            <th>Sản phẩm</th>
+            <th class="text-right">Giá</th>
+            <th class="text-right">Tổng cộng</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.ShoppingCart.ShoppingCartItems)
+        {
+            <tr>
+                <td class="text-center">@item.Quantity</td>
+                <td class="text-left">@item.Ticket.Name</td>
+                <td class="text-right">@item.Ticket.Price.ToString("c")</td>
+                <td class="text-right">
+                    @((item.Quantity * item.Ticket.Price).ToString("c"))
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-right">Tổng cộng:</td>
+            <td class="text-right">
+                @Model.ShoppingCartTotal.ToString("c")
+            </td>
+        </tr>
+    </tfoot>
+</table>
