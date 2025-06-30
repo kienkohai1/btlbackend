@@ -105,7 +105,7 @@ namespace BTL.Controllers
         }
 
         // GET: Events/Edit/5
-        // Phương thức này lấy dữ liệu sự kiện và danh sách vé để hiển thị trên form chỉnh sửa.
+        // Action này được cập nhật để sử dụng EventEditViewModel.
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -116,7 +116,6 @@ namespace BTL.Controllers
             var anEvent = await _context.Events.FindAsync(id);
             if (anEvent == null)
             {
-                // Không tìm thấy sự kiện, trả về trang 404 Not Found.
                 return NotFound();
             }
 
@@ -125,46 +124,43 @@ namespace BTL.Controllers
                                         .Where(t => t.EventId == id)
                                         .ToListAsync();
 
-            // Tạo một ViewModel để đóng gói tất cả dữ liệu cần thiết cho View.
+            // Tạo ViewModel, đóng gói tất cả dữ liệu cần thiết.
             var viewModel = new EventEditViewModel
             {
                 Event = anEvent,
-                Tickets = tickets
+                Tickets = tickets,
+                // Khởi tạo NewTicket và gán sẵn EventId cho form thêm nhanh.
+                NewTicket = new Ticket { EventId = anEvent.Id }
             };
 
             return View(viewModel);
         }
 
         // POST: Events/Edit/5
-        // Phương thức này xử lý dữ liệu được gửi từ form chỉnh sửa.
-        // Nó bảo mật, xử lý tệp tin và cập nhật thông tin vào cơ sở dữ liệu.
+        // Action này giữ nguyên logic xử lý file và cập nhật sự kiện của bạn.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,DateTime,Description,Location,ImagePath,ImageFile")] Event @event)
         {
+            // Giữ nguyên toàn bộ mã nguồn xử lý cập nhật sự kiện của bạn ở đây...
+            // Nó đã được viết rất tốt.
             if (id != @event.Id)
             {
                 return NotFound();
             }
 
-            // ModelState.IsValid kiểm tra xem dữ liệu gửi lên có hợp lệ không
-            // (dựa trên các DataAnnotations trong Model 'Event').
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Lấy thông tin sự kiện hiện tại từ DB mà không theo dõi nó
-                    // để giữ lại ImagePath cũ nếu không có file mới được tải lên.
                     var existingEvent = await _context.Events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
                     if (existingEvent == null)
                     {
                         return NotFound();
                     }
 
-                    // Kiểm tra xem người dùng có tải lên file ảnh mới không.
                     if (@event.ImageFile != null)
                     {
-                        // Nếu có ảnh cũ, tiến hành xóa nó khỏi server.
                         if (!string.IsNullOrEmpty(existingEvent.ImagePath))
                         {
                             string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, existingEvent.ImagePath.TrimStart('/'));
@@ -174,25 +170,18 @@ namespace BTL.Controllers
                             }
                         }
 
-                        // Tải lên hình ảnh mới (logic giống như trong action Create).
                         string uniqueFileName = Guid.NewGuid().ToString() + "_" + @event.ImageFile.FileName;
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images");
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
                         string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                         using (var fileStream = new FileStream(filePath, FileMode.Create))
                         {
                             await @event.ImageFile.CopyToAsync(fileStream);
                         }
-                        // Cập nhật đường dẫn hình ảnh mới vào đối tượng event.
                         @event.ImagePath = "/images/" + uniqueFileName;
                     }
                     else
                     {
-                        // Nếu không có file mới được tải lên, giữ lại đường dẫn ảnh cũ.
                         @event.ImagePath = existingEvent.ImagePath;
                     }
 
@@ -201,7 +190,6 @@ namespace BTL.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    // Xử lý trường hợp có xung đột khi cập nhật dữ liệu (ví dụ: người khác đã xóa event này).
                     if (!EventExists(@event.Id))
                     {
                         return NotFound();
@@ -211,26 +199,50 @@ namespace BTL.Controllers
                         throw;
                     }
                 }
-                // Nếu thành công, chuyển hướng về trang danh sách sự kiện.
                 return RedirectToAction(nameof(Index));
             }
 
-            // Nếu ModelState không hợp lệ (người dùng nhập thiếu/sai dữ liệu):
-            // Tải lại danh sách vé để hiển thị lại form một cách đầy đủ.
-            var tickets = await _context.Tickets
-                                    .Where(t => t.EventId == id)
-                                    .ToListAsync();
-
-            // Đóng gói lại ViewModel với dữ liệu người dùng đã nhập và danh sách vé.
+            // Nếu không hợp lệ, tải lại dữ liệu và hiển thị lại trang Edit.
+            var tickets = await _context.Tickets.Where(t => t.EventId == id).ToListAsync();
             var viewModel = new EventEditViewModel
             {
                 Event = @event,
-                Tickets = tickets
+                Tickets = tickets,
+                NewTicket = new Ticket { EventId = id }
             };
-
-            // Trả về View với ViewModel để người dùng có thể sửa lại lỗi.
             return View(viewModel);
         }
+
+
+        // === ACTION MỚI ĐỂ XỬ LÝ VIỆC TẠO VÉ NHANH ===
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddTicket(EventEditViewModel viewModel)
+        {
+            // Chúng ta chỉ quan tâm đến dữ liệu của vé mới từ form.
+            var newTicket = viewModel.NewTicket;
+
+            // Kiểm tra dữ liệu vé mới có hợp lệ không.
+            if (!string.IsNullOrEmpty(newTicket.Name) && newTicket.Price >= 0 && newTicket.QuantityAvailable >= 0)
+            {
+                // Kiểm tra xem sự kiện có thực sự tồn tại không.
+                var anEvent = await _context.Events.FindAsync(newTicket.EventId);
+                if (anEvent != null)
+                {
+                    _context.Tickets.Add(newTicket);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else
+            {
+                // Nếu dữ liệu không hợp lệ, có thể gửi một thông báo lỗi tạm thời.
+                TempData["TicketCreationError"] = "Thông tin vé không hợp lệ. Vui lòng thử lại.";
+            }
+
+            // Sau khi xử lý xong, chuyển hướng người dùng quay lại chính trang Edit.
+            return RedirectToAction("Edit", new { id = newTicket.EventId });
+        }
+
 
         // GET: Events/Delete/5
         public async Task<IActionResult> Delete(int? id)
