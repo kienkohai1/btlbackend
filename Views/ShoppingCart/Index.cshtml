@@ -1,34 +1,100 @@
 ﻿@model BTL.ViewModels.ShoppingCartViewModel
+@*Sử dụng ViewModel đã được định nghĩa để nhận dữ liệu từ Controller*@
 
-<h2>Giỏ hàng của bạn</h2>
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Số lượng</th>
-            <th>Sản phẩm</th>
-            <th class="text-right">Giá</th>
-            <th class="text-right">Tổng cộng</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.ShoppingCart.ShoppingCartItems)
-        {
-            <tr>
-                <td class="text-center">@item.Quantity</td>
-                <td class="text-left">@item.Ticket.Name</td>
-                <td class="text-right">@item.Ticket.Price.ToString("c")</td>
-                <td class="text-right">
-                    @((item.Quantity * item.Ticket.Price).ToString("c"))
-                </td>
-            </tr>
-        }
-    </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="3" class="text-right">Tổng cộng:</td>
-            <td class="text-right">
-                @Model.ShoppingCartTotal.ToString("c")
-            </td>
-        </tr>
-    </tfoot>
-</table>
+@{
+    ViewData["Title"] = "Giỏ hàng của bạn";
+}
+
+<div class="container my-5">
+    <h1 class="display-4 text-center mb-4">🛒 Giỏ hàng của bạn</h1>
+    @if (TempData["CartMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["CartMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* Hiển thị thông báo (ví dụ: "Hết hàng", "Đã xóa giỏ hàng") nếu có *@
+    @if (TempData["CartMessage"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @TempData["CartMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* Kiểm tra xem giỏ hàng có sản phẩm không *@
+    @if (Model.ShoppingCart.ShoppingCartItems.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Sản phẩm</th>
+                            <th scope="col" class="text-center">Số lượng</th>
+                            <th scope="col" class="text-end">Đơn giá</th>
+                            <th scope="col" class="text-end">Tổng cộng</th>
+                            <th scope="col" class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @* Lặp qua từng sản phẩm trong giỏ hàng để hiển thị *@
+                        @foreach (var item in Model.ShoppingCart.ShoppingCartItems)
+                        {
+                            <tr>
+                                <td>@item.Ticket.Name</td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">@item.Ticket.Price.ToString("c", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                <td class="text-end">@((item.Quantity * item.Ticket.Price).ToString("c", new System.Globalization.CultureInfo("vi-VN")))</td>
+                                <td class="text-center">
+                                    @* Nút để xóa bớt 1 sản phẩm khỏi giỏ hàng *@
+                                    <a class="btn btn-outline-danger btn-sm" asp-controller="ShoppingCart" asp-action="RemoveFromShoppingCart" asp-route-ticketId="@item.Ticket.Id" title="Xóa bớt 1 sản phẩm">
+                                        Xóa
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="fw-bold">
+                        <tr>
+                            <td colspan="3" class="text-end fs-5">Tổng cộng</td>
+                            <td class="text-end fs-5">@Model.ShoppingCartTotal.ToString("c", new System.Globalization.CultureInfo("vi-VN"))</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <div>
+                @* Nút để xóa toàn bộ giỏ hàng *@
+                <a class="btn btn-danger" asp-controller="ShoppingCart" asp-action="ClearCart">
+                    Dọn sạch giỏ hàng
+                </a>
+            </div>
+            <div>
+                <a class="btn btn-secondary me-2" asp-controller="Events" asp-action="Index">
+                    Tiếp tục mua sắm
+                </a>
+                @* Nút Thanh toán (sẽ cần tạo controller và action cho nó sau) *@
+                <a class="btn btn-primary" asp-controller="Order" asp-action="Checkout">
+                    Tiến hành thanh toán
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* Hiển thị thông báo nếu giỏ hàng trống *@
+        <div class="text-center p-5 border rounded bg-light">
+            <h3>Giỏ hàng của bạn đang trống.</h3>
+            <p>Hãy chọn những sự kiện tuyệt vời và thêm vé vào đây nhé!</p>
+            <a class="btn btn-primary mt-3" asp-controller="Events" asp-action="Index">
+                Xem danh sách sự kiện
+            </a>
+        </div>
+    }
+</div>

@@ -1,0 +1,27 @@
+﻿@model BTL.Models.Ticket
+
+@{
+    ViewData["Title"] = "Thêm Vé vào Giỏ Hàng";
+}
+
+<h2>Thêm Vé vào Giỏ Hàng</h2>
+
+@if (TempData["CartMessage"] != null)
+{
+    <div class="alert alert-info">@TempData["CartMessage"]</div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <h4>@Model.Name</h4>
+        <p><strong>Sự kiện:</strong> @Model.Event.Name</p>
+        <p><strong>Giá vé:</strong> @Model.Price.ToString("C")</p>
+        <p><strong>Số lượng vé còn lại:</strong> @Model.QuantityAvailable</p>
+
+        <form asp-action="AddToShoppingCart" asp-controller="ShoppingCart" method="post">
+            <input type="hidden" name="ticketId" value="@Model.Id" />
+            <button type="submit" class="btn btn-primary mt-3">Thêm vào giỏ hàng</button>
+        </form>
+        <a asp-action="Details" asp-controller="Events" asp-route-id="@Model.EventId" class="btn btn-secondary mt-3">Quay lại sự kiện</a>
+    </div>
+</div>

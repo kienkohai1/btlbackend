@@ -17,7 +17,6 @@ namespace BTL.Models
         [Required]
         public int QuantityAvailable { get; set; } // Số lượng vé có sẵn
 
-        // Khóa ngoại đến Event
         public int EventId { get; set; }
         [ForeignKey("EventId")]
         public virtual Event Event { get; set; }

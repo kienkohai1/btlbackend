@@ -33,20 +33,30 @@ namespace BTL.Services
             var shoppingCartItem = _context.ShoppingCartItems.SingleOrDefault(
                 s => s.Ticket.Id == ticket.Id && s.ShoppingCartId == ShoppingCartId);
 
+            // Nếu sản phẩm chưa có trong giỏ
             if (shoppingCartItem == null)
             {
-                shoppingCartItem = new ShoppingCartItem
+                // Chỉ thêm nếu số lượng có sẵn > 0
+                if (ticket.QuantityAvailable >= quantity)
                 {
-                    ShoppingCartId = ShoppingCartId,
-                    Ticket = ticket,
-                    Quantity = quantity
-                };
-                _context.ShoppingCartItems.Add(shoppingCartItem);
+                    shoppingCartItem = new ShoppingCartItem
+                    {
+                        ShoppingCartId = ShoppingCartId,
+                        Ticket = ticket,
+                        Quantity = quantity
+                    };
+                    _context.ShoppingCartItems.Add(shoppingCartItem);
+                }
             }
+            // Nếu sản phẩm đã có, chỉ tăng số lượng nếu còn hàng
             else
             {
-                shoppingCartItem.Quantity += quantity;
+                if (shoppingCartItem.Quantity + quantity <= ticket.QuantityAvailable)
+                {
+                    shoppingCartItem.Quantity += quantity;
+                }
             }
+
             _context.SaveChanges();
         }
 

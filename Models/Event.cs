@@ -1,11 +1,19 @@
 ﻿using System;
+using System.Collections.Generic; // Cần thêm dòng này để sử dụng List<T>
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; // Thêm dòng này
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Http; // Cần thêm dòng này để sử dụng IFormFile
 
 namespace BTL.Models
 {
     public class Event
     {
+        // Constructor được viết đúng cú pháp như thế này
+        public Event()
+        {
+            Tickets = new List<Ticket>();
+        }
+
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Tên sự kiện là bắt buộc.")]
@@ -25,7 +33,9 @@ namespace BTL.Models
 
         [Display(Name = "Hình ảnh")]
         public string? ImagePath { get; set; } // Đường dẫn lưu trữ hình ảnh (có thể null)
+
         public List<Ticket> Tickets { get; set; }
+
         [NotMapped]
         [Display(Name = "Chọn hình ảnh")]
         public IFormFile? ImageFile { get; set; }

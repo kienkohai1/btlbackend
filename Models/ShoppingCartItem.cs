@@ -8,8 +8,7 @@ namespace BTL.Models
 
         public Ticket Ticket { get; set; }
         public int Quantity { get; set; }
-
-        // ID của giỏ hàng (sẽ được quản lý bằng session)
         public string ShoppingCartId { get; set; }
+
     }
 }
