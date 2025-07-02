@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Chi tiết sự kiện";
-    // Lấy danh sách vé từ ViewData và ép kiểu
     var tickets = ViewData["Tickets"] as IEnumerable<BTL.Models.Ticket>;
 }
 
@@ -45,7 +44,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @* SỬA Ở ĐÂY: Dùng biến 'tickets' đã lấy từ ViewData *@
                     @if (tickets != null && tickets.Any())
                     {
                         @foreach (var ticket in tickets)
@@ -54,7 +52,6 @@
                                 <td><strong>@ticket.Name</strong></td>
                                 <td>@ticket.Price.ToString("N0") VNĐ</td>
                                 <td class="text-end">
-                                    @* SỬA Ở ĐÂY: Đổi asp-action thành "AddToCart" để khớp với Controller *@
                                     <a asp-controller="ShoppingCart" asp-action="AddToCart" asp-route-ticketId="@ticket.Id" class="btn btn-success">
                                         <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
                                     </a>
@@ -77,7 +74,3 @@
         </div>
     </div>
 </div>
-
-@* Để sử dụng biểu tượng giỏ hàng, hãy chắc chắn bạn đã thêm Font Awesome vào dự án,
-   ví dụ như thêm dòng sau vào file _Layout.cshtml *@
-@* <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" /> *@

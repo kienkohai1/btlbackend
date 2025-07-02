@@ -1,99 +1,111 @@
 ﻿using BTL.Models;
 using BTL.Services;
 using BTL.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
+using System;
 
 namespace BTL.Controllers
 {
+    [Authorize] // Yêu cầu đăng nhập cho toàn bộ controller
     public class ShoppingCartController : Controller
     {
-        private readonly ShoppingCart _shoppingCart;
         private readonly QLSKContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ShoppingCartController(ShoppingCart shoppingCart, QLSKContext context)
+        public ShoppingCartController(QLSKContext context, IHttpContextAccessor httpContextAccessor)
         {
-            _shoppingCart = shoppingCart;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        // GET: /ShoppingCart/
-        // Hiển thị trang giỏ hàng.
+        private ShoppingCart GetCart()
+        {
+            return ShoppingCart.GetCart(new ServiceProviderWrapper(_context, _httpContextAccessor));
+        }
+
         public IActionResult Index()
         {
-            // Lấy các sản phẩm trong giỏ hàng. Dòng code thừa đã được loại bỏ.
-            var items = _shoppingCart.GetShoppingCartItems();
-
+            var cart = GetCart();
+            var cartItems = cart.GetShoppingCartItems();
             var viewModel = new ShoppingCartViewModel
             {
-                ShoppingCart = _shoppingCart,
-                ShoppingCartTotal = _shoppingCart.GetShoppingCartTotal()
+                ShoppingCart = cart,
+                ShoppingCartTotal = cart.GetShoppingCartTotal()
             };
-
             return View(viewModel);
         }
 
-        // Fix for CS0029: The method AddToCart in ShoppingCart returns void, not bool.  
-        // Update the code to remove the assignment to a boolean variable and handle the logic accordingly.  
-
+        [HttpPost]
         public IActionResult AddToShoppingCart(int ticketId)
         {
-            var selectedTicket = _context.Tickets.FirstOrDefault(p => p.Id == ticketId);
-
-            if (selectedTicket != null)
-            {
-                _shoppingCart.AddToCart(selectedTicket, 1);
-
-                // Assume the addition is successful and set a success message.  
-                TempData["CartMessage"] = $"Đã thêm vé '{selectedTicket.Name}' vào giỏ hàng!";
-            }
-            else
-            {
-                TempData["CartMessage"] = "Lỗi: Không tìm thấy vé bạn chọn.";
-            }
-
-            return RedirectToAction("Index");
-        }
-
-        // === CẢI THIỆN: BỔ SUNG CÁC ACTION CÒN THIẾU ===
-
-        // GET: /ShoppingCart/RemoveFromShoppingCart/{id}
-        // Giảm 1 đơn vị sản phẩm hoặc xóa nếu chỉ còn 1.
-        public IActionResult RemoveFromShoppingCart(int ticketId)
-        {
-            var selectedTicket = _context.Tickets.FirstOrDefault(p => p.Id == ticketId);
-
-            if (selectedTicket != null)
-            {
-                _shoppingCart.RemoveFromCart(selectedTicket);
-            }
-
-            return RedirectToAction("Index");
-        }
-
-        // GET: /ShoppingCart/ClearCart
-        // Xóa toàn bộ giỏ hàng.
-        public IActionResult ClearCart()
-        {
-            _shoppingCart.ClearCart();
-            TempData["CartMessage"] = "Giỏ hàng của bạn đã được dọn trống.";
-            return RedirectToAction("Index");
-        }
-        [HttpGet]
-        public IActionResult AddToCart(int ticketId)
-        {
-            var ticket = _context.Tickets
-                .Include(t => t.Event)
-                .FirstOrDefault(t => t.Id == ticketId);
-
+            var cart = GetCart();
+            var ticket = _context.Tickets.Find(ticketId);
             if (ticket == null)
             {
-                TempData["CartMessage"] = "Lỗi: Không tìm thấy vé bạn chọn.";
+                TempData["CartMessage"] = "Vé không tồn tại.";
                 return RedirectToAction("Index", "Events");
             }
 
+            cart.AddToCart(ticket, 1);
+            TempData["CartMessage"] = $"Đã thêm {ticket.Name} vào giỏ hàng.";
+            return RedirectToAction("Index");
+        }
+        public IActionResult AddToCart(int ticketId)
+        {
+            var ticket = _context.Tickets.Include(t => t.Event).FirstOrDefault(t => t.Id == ticketId);
+            if (ticket == null)
+            {
+                TempData["CartMessage"] = "Vé không tồn tại.";
+                return RedirectToAction("Index", "Events");
+            }
             return View(ticket);
+        }
+
+        public IActionResult RemoveFromShoppingCart(int ticketId)
+        {
+            var cart = GetCart();
+            var ticket = _context.Tickets.Find(ticketId);
+            if (ticket == null)
+            {
+                TempData["CartMessage"] = "Vé không tồn tại.";
+                return RedirectToAction("Index");
+            }
+
+            cart.RemoveFromCart(ticket);
+            TempData["CartMessage"] = $"Đã xóa {ticket.Name} khỏi giỏ hàng.";
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult ClearCart()
+        {
+            var cart = GetCart();
+            cart.ClearCart();
+            TempData["CartMessage"] = "Đã xóa toàn bộ giỏ hàng.";
+            return RedirectToAction("Index");
+        }
+
+        // Helper class
+        public class ServiceProviderWrapper : IServiceProvider
+        {
+            private readonly QLSKContext _context;
+            private readonly IHttpContextAccessor _httpContextAccessor;
+
+            public ServiceProviderWrapper(QLSKContext context, IHttpContextAccessor httpContextAccessor)
+            {
+                _context = context;
+                _httpContextAccessor = httpContextAccessor;
+            }
+
+            public object GetService(Type serviceType)
+            {
+                if (serviceType == typeof(QLSKContext))
+                    return _context;
+                if (serviceType == typeof(IHttpContextAccessor))
+                    return _httpContextAccessor;
+                return null;
+            }
         }
     }
 }
