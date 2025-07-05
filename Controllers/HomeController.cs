@@ -1,21 +1,30 @@
-using System.Diagnostics;
-using BTL.Models;
+using BTL.Models; // ??m b?o ?ã using Models
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore; // Using ?? có th? dùng ToListAsync
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace BTL.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly QLSKContext _context;
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        // Constructor ?ã ???c thêm QLSKContext
+        public HomeController(ILogger<HomeController> logger, QLSKContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        // Action Index gi? s? l?y danh sách s? ki?n
+        public async Task<IActionResult> Index()
         {
-            return View();
+            // L?y t?t c? s? ki?n t? CSDL
+            var events = await _context.Events.ToListAsync();
+            // G?i danh sách này ??n View
+            return View(events);
         }
 
         public IActionResult Privacy()

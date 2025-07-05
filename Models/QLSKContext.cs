@@ -13,13 +13,22 @@ namespace BTL.Models
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
-
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<OrderDetail>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDetails)
+                .HasForeignKey(od => od.OrderId);
+
+            builder.Entity<OrderDetail>()
+                .HasOne(od => od.Ticket)
+                .WithMany()
+                .HasForeignKey(od => od.TicketId);
         }
     }
 }
