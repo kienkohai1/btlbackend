@@ -1,0 +1,97 @@
+﻿@model List<BTL.Models.Order>
+
+@{
+    ViewData["Title"] = "Tất cả đơn hàng";
+}
+
+<div class="container mt-5">
+    <h1 class="display-4 text-center mb-4">Tất cả đơn hàng</h1>
+
+    @if (TempData["CartMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["CartMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã đơn hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Email</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td>#@order.Id</td>
+                                <td>@order.CustomerName</td>
+                                <td>@order.CustomerEmail</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@order.OrderTotal.ToString("c", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                <td>
+                                    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#orderDetails_@order.Id" aria-expanded="false" aria-controls="orderDetails_@order.Id">
+                                        Xem chi tiết
+                                    </button>
+                                    <div class="collapse mt-2" id="orderDetails_@order.Id">
+                                        <div class="card card-body">
+                                            <h6>Chi tiết đơn hàng</h6>
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Sự kiện</th>
+                                                        <th>Vé</th>
+                                                        <th>Số lượng</th>
+                                                        <th>Đơn giá</th>
+                                                        <th>Tổng</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var detail in order.OrderDetails)
+                                                    {
+                                                        <tr>
+                                                            <td>@detail.Ticket.Event.Name</td>
+                                                            <td>@detail.Ticket.Name</td>
+                                                            <td>@detail.Quantity</td>
+                                                            <td>@detail.Price.ToString("c", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                                            <td>@((detail.Quantity * detail.Price).ToString("c", new System.Globalization.CultureInfo("vi-VN")))</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-3">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Quay lại</a>
+        </div>
+    }
+    else
+    {
+        <div class="text-center p-5 border rounded bg-light">
+            <h3>Chưa có đơn hàng nào.</h3>
+            <p>Không có đơn hàng nào trong hệ thống.</p>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Về trang chủ</a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

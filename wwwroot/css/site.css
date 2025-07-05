@@ -20,3 +20,84 @@ html {
 body {
   margin-bottom: 60px;
 }
+/* --- CSS CHO TRANG HOME --- */
+
+/* Hero Banner */
+.hero-banner {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8Y29uY2VydHx8fHx8fDE2MjkxNzAwNjA&ixlib=rb-1.2.1&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080');
+    background-size: cover;
+    background-position: center;
+    padding: 100px 0;
+    margin-bottom: 2rem;
+}
+
+/* Th? s? ki?n (Event Card) */
+.event-card {
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .event-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .event-card .card-img-top {
+        height: 200px;
+        object-fit: cover; /* ??m b?o ?nh không b? méo */
+    }
+
+    .event-card .card-body {
+        padding: 1.25rem;
+    }
+
+    .event-card .card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        /* Gi?i h?n tên s? ki?n ch? hi?n th? trên 2 dòng */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 44px; /* Chi?u cao t??ng ???ng 2 dòng ch? */
+    }
+
+    .event-card .card-text {
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .event-card .card-text i {
+            margin-right: 8px;
+            color: #6c757d;
+        }
+
+.event-card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+    .event-card-link:hover {
+        color: inherit;
+    }
+
+.event-card .card-footer {
+    background-color: #fff;
+    border-top: none;
+    padding: 0 1.25rem 1.25rem;
+}
+
+/* Danh m?c s? ki?n */
+.event-categories .btn {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+    .event-categories .btn.active {
+        background-color: #0d6efd;
+        color: white;
+    }

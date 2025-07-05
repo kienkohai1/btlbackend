@@ -1,8 +1,53 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<BTL.Models.Event>
+
+@{
+    ViewData["Title"] = "Trang Chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="hero-banner text-center text-white">
+    <div class="container">
+        <h1 class="display-4">Sàn vé của bạn</h1>
+        <p class="lead">Mua và bán vé cho những sự kiện tuyệt vời nhất</p>
+    </div>
+</div>
+
+<div class="container mt-5">
+
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card event-card h-100">
+                        <a asp-controller="Events" asp-action="Details" asp-route-id="@item.Id" class="event-card-link">
+                            <img src="@item.ImagePath" class="card-img-top" alt="Hình ảnh sự kiện @item.Name">
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Name</h5>
+                                <p class="card-text text-muted">
+                                    <i class="bi bi-calendar-event"></i> @item.DateTime.ToString("dd/MM/yyyy")
+                                </p>
+                                <p class="card-text text-muted">
+                                    <i class="bi bi-geo-alt-fill"></i> @item.Location
+                                </p>
+                            </div>
+                        </a>
+                        <div class="card-footer text-center">
+                            <a asp-controller="Events" asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary w-100">Mua Vé</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <p>Chưa có sự kiện nào được đăng.</p>
+            </div>
+        }
+    </div>
+
+    <div class="text-center mt-4 mb-5">
+        <a href="#" class="btn btn-lg btn-outline-secondary">Xem thêm sự kiện</a>
+    </div>
 </div>

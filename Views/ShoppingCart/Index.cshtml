@@ -1,12 +1,11 @@
 ﻿@model BTL.ViewModels.ShoppingCartViewModel
-@*Sử dụng ViewModel đã được định nghĩa để nhận dữ liệu từ Controller*@
-
 @{
     ViewData["Title"] = "Giỏ hàng của bạn";
 }
 
-<div class="container my-5">
+<div class="container mt-5">
     <h1 class="display-4 text-center mb-4">🛒 Giỏ hàng của bạn</h1>
+
     @if (TempData["CartMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -15,16 +14,6 @@
         </div>
     }
 
-    @* Hiển thị thông báo (ví dụ: "Hết hàng", "Đã xóa giỏ hàng") nếu có *@
-    @if (TempData["CartMessage"] != null)
-    {
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            @TempData["CartMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @* Kiểm tra xem giỏ hàng có sản phẩm không *@
     @if (Model.ShoppingCart.ShoppingCartItems.Any())
     {
         <div class="card shadow-sm">
@@ -40,7 +29,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @* Lặp qua từng sản phẩm trong giỏ hàng để hiển thị *@
                         @foreach (var item in Model.ShoppingCart.ShoppingCartItems)
                         {
                             <tr>
@@ -49,10 +37,12 @@
                                 <td class="text-end">@item.Ticket.Price.ToString("c", new System.Globalization.CultureInfo("vi-VN"))</td>
                                 <td class="text-end">@((item.Quantity * item.Ticket.Price).ToString("c", new System.Globalization.CultureInfo("vi-VN")))</td>
                                 <td class="text-center">
-                                    @* Nút để xóa bớt 1 sản phẩm khỏi giỏ hàng *@
-                                    <a class="btn btn-outline-danger btn-sm" asp-controller="ShoppingCart" asp-action="RemoveFromShoppingCart" asp-route-ticketId="@item.Ticket.Id" title="Xóa bớt 1 sản phẩm">
-                                        Xóa
-                                    </a>
+                                    <form asp-controller="ShoppingCart" asp-action="RemoveFromShoppingCart" method="post" class="d-inline">
+                                        <input type="hidden" name="ticketId" value="@item.Ticket.Id" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa bớt 1 sản phẩm">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         }
@@ -70,16 +60,14 @@
 
         <div class="d-flex justify-content-between mt-4">
             <div>
-                @* Nút để xóa toàn bộ giỏ hàng *@
-                <a class="btn btn-danger" asp-controller="ShoppingCart" asp-action="ClearCart">
-                    Dọn sạch giỏ hàng
-                </a>
+                <form asp-controller="ShoppingCart" asp-action="ClearCart" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Dọn sạch giỏ hàng</button>
+                </form>
             </div>
             <div>
                 <a class="btn btn-secondary me-2" asp-controller="Events" asp-action="Index">
                     Tiếp tục mua sắm
                 </a>
-                @* Nút Thanh toán (sẽ cần tạo controller và action cho nó sau) *@
                 <a class="btn btn-primary" asp-controller="Order" asp-action="Checkout">
                     Tiến hành thanh toán
                 </a>
@@ -88,7 +76,6 @@
     }
     else
     {
-        @* Hiển thị thông báo nếu giỏ hàng trống *@
         <div class="text-center p-5 border rounded bg-light">
             <h3>Giỏ hàng của bạn đang trống.</h3>
             <p>Hãy chọn những sự kiện tuyệt vời và thêm vé vào đây nhé!</p>
@@ -98,3 +85,7 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
