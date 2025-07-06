@@ -8,7 +8,7 @@ using System;
 
 namespace BTL.Controllers
 {
-    [Authorize] // Yêu cầu đăng nhập cho toàn bộ controller
+    [Authorize]
     public class ShoppingCartController : Controller
     {
         private readonly QLSKContext _context;
@@ -38,20 +38,30 @@ namespace BTL.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddToShoppingCart(int ticketId)
+        public async Task<IActionResult> AddToShoppingCart(int ticketId)
         {
-            var cart = GetCart();
-            var ticket = _context.Tickets.Find(ticketId);
+            var ticket = await _context.Tickets
+                .Include(t => t.Event)
+                .FirstOrDefaultAsync(t => t.Id == ticketId);
+
             if (ticket == null)
             {
                 TempData["CartMessage"] = "Vé không tồn tại.";
                 return RedirectToAction("Index", "Events");
             }
 
+            if (ticket.QuantityAvailable <= 0)
+            {
+                TempData["CartMessage"] = $"Vé {ticket.Name} đã hết. Vui lòng chọn loại vé khác.";
+                return RedirectToAction("Details", "Events", new { id = ticket.EventId });
+            }
+
+            var cart = GetCart();
             cart.AddToCart(ticket, 1);
             TempData["CartMessage"] = $"Đã thêm {ticket.Name} vào giỏ hàng.";
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", "Events", new { id = ticket.EventId });
         }
+
         public IActionResult AddToCart(int ticketId)
         {
             var ticket = _context.Tickets.Include(t => t.Event).FirstOrDefault(t => t.Id == ticketId);
@@ -86,7 +96,6 @@ namespace BTL.Controllers
             return RedirectToAction("Index");
         }
 
-        // Helper class
         public class ServiceProviderWrapper : IServiceProvider
         {
             private readonly QLSKContext _context;

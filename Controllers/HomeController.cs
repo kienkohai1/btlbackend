@@ -1,41 +1,54 @@
-using BTL.Models; // ??m b?o ?ã using Models
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // Using ?? có th? dùng ToListAsync
-using System.Diagnostics;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using BTL.Models;
 
 namespace BTL.Controllers
 {
     public class HomeController : Controller
     {
         private readonly QLSKContext _context;
-        private readonly ILogger<HomeController> _logger;
 
-        // Constructor ?ã ???c thêm QLSKContext
-        public HomeController(ILogger<HomeController> logger, QLSKContext context)
+        public HomeController(QLSKContext context)
         {
-            _logger = logger;
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        // Action Index gi? s? l?y danh sách s? ki?n
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchQuery)
         {
-            // L?y t?t c? s? ki?n t? CSDL
-            var events = await _context.Events.ToListAsync();
-            // G?i danh sách này ??n View
-            return View(events);
-        }
+            if (_context == null || _context.Events == null)
+            {
+                ViewBag.EventsWithTickets = new object[] { };
+                ViewBag.SearchQuery = searchQuery;
+                return View();
+            }
 
-        public IActionResult Privacy()
-        {
+            var events = _context.Events
+                .Include(e => e.Tickets)
+                .AsQueryable();
+
+            // Áp d?ng b? l?c tìm ki?m n?u có searchQuery
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                searchQuery = searchQuery.Trim().ToLower();
+                events = events.Where(e => e.Name.ToLower().Contains(searchQuery));
+            }
+
+            // Chu?n b? danh sách s? ki?n v?i t?ng s? vé còn l?i
+            var eventsWithTickets = await events
+                .Select(e => new
+                {
+                    Event = e,
+                    TotalTicketsAvailable = e.Tickets.Sum(t => t.QuantityAvailable)
+                })
+                .ToListAsync();
+
+            ViewBag.EventsWithTickets = eventsWithTickets;
+            ViewBag.SearchQuery = searchQuery;
+
             return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

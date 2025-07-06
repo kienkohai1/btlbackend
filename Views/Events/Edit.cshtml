@@ -7,117 +7,188 @@
 <div class="container mt-5">
     <div class="card shadow-sm">
         <div class="card-body">
+            @if (User.IsInRole("Admin"))
+            {
+                <!-- FORM 1: CHỈNH SỬA THÔNG TIN SỰ KIỆN -->
+                <h4 class="card-title">Chi tiết sự kiện</h4>
+                <hr />
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success" role="alert">
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <form asp-action="Edit" enctype="multipart/form-data">
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                            <input type="hidden" asp-for="Event.Id" />
+                            <input type="hidden" asp-for="Event.ImagePath" />
 
-            <!-- FORM 1: CHỈNH SỬA THÔNG TIN SỰ KIỆN -->
-            <h4 class="card-title">Chi tiết sự kiện</h4>
-            <hr />
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <form asp-action="Edit" enctype="multipart/form-data">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        <input type="hidden" asp-for="Event.Id" />
-                        <input type="hidden" asp-for="Event.ImagePath" />
+                            <div class="mb-3">
+                                <label asp-for="Event.Name" class="form-label fw-bold"></label>
+                                <input asp-for="Event.Name" class="form-control" />
+                                <span asp-validation-for="Event.Name" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Event.DateTime" class="form-label fw-bold"></label>
+                                <input asp-for="Event.DateTime" class="form-control" type="datetime-local" />
+                                <span asp-validation-for="Event.DateTime" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Event.Description" class="form-label fw-bold"></label>
+                                <textarea asp-for="Event.Description" class="form-control" rows="4"></textarea>
+                                <span asp-validation-for="Event.Description" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Event.Location" class="form-label fw-bold"></label>
+                                <input asp-for="Event.Location" class="form-control" />
+                                <span asp-validation-for="Event.Location" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Event.ImageFile" class="form-label fw-bold"></label>
+                                <input asp-for="Event.ImageFile" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                                <span asp-validation-for="Event.ImageFile" class="text-danger"></span>
+                                @if (!string.IsNullOrEmpty(Model.Event.ImagePath))
+                                {
+                                    <img src="@Url.Content(Model.Event.ImagePath)" alt="Hình ảnh hiện tại" class="img-fluid mt-3" style="max-width:150px; height:auto;" />
+                                }
+                            </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Event.Name" class="form-label fw-bold"></label>
-                            <input asp-for="Event.Name" class="form-control" />
-                            <span asp-validation-for="Event.Name" class="text-danger"></span>
-                        </div>
-                        <!-- Các trường thông tin khác của Event (DateTime, Description...) -->
-                        <div class="mb-3">
-                            <label asp-for="Event.DateTime" class="form-label fw-bold"></label>
-                            <input asp-for="Event.DateTime" class="form-control" type="datetime-local" />
-                            <span asp-validation-for="Event.DateTime" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Event.Description" class="form-label fw-bold"></label>
-                            <textarea asp-for="Event.Description" class="form-control" rows="4"></textarea>
-                            <span asp-validation-for="Event.Description" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Event.Location" class="form-label fw-bold"></label>
-                            <input asp-for="Event.Location" class="form-control" />
-                            <span asp-validation-for="Event.Location" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Event.ImageFile" class="form-label fw-bold"></label>
-                            <input asp-for="Event.ImageFile" type="file" class="form-control" />
-                            @if (!string.IsNullOrEmpty(Model.Event.ImagePath))
-                            {
-                                <img src="@Url.Content(Model.Event.ImagePath)" alt="Current Image" class="img-fluid mt-3" style="max-width:150px; height:auto;" />
-                            }
-                        </div>
-
-                        <div class="d-flex justify-content-start gap-2">
-                            <input type="submit" value="Lưu thay đổi" class="btn btn-primary px-4" />
-                            <a asp-action="Index" class="btn btn-outline-secondary px-4">Quay lại danh sách</a>
-                        </div>
-                    </form>
+                            <div class="d-flex justify-content-start gap-2">
+                                <input type="submit" value="Lưu thay đổi" class="btn btn-primary px-4" />
+                                <a asp-action="Index" class="btn btn-outline-secondary px-4">Quay lại danh sách</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-            <!-- PHẦN QUẢN LÝ VÉ -->
-            <hr class="my-4" />
-            <h4 class="card-title">Quản lý vé</h4>
-            <p>Các loại vé hiện có cho sự kiện này.</p>
-            <table class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Loại vé</th>
-                        <th>Giá</th>
-                        <th>Số lượng còn lại</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Tickets.Any())
-                    {
-                        @foreach (var ticket in Model.Tickets)
+                <!-- PHẦN QUẢN LÝ VÉ -->
+                <hr class="my-4" />
+                <h4 class="card-title">Quản lý vé</h4>
+                <p>Các loại vé hiện có cho sự kiện này.</p>
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Loại vé</th>
+                            <th>Giá</th>
+                            <th>Số lượng còn lại</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Tickets.Any())
+                        {
+                            @foreach (var ticket in Model.Tickets)
+                            {
+                                <tr>
+                                    <td>@ticket.Name</td>
+                                    <td>@ticket.Price.ToString("N0") VNĐ</td>
+                                    <td>@ticket.QuantityAvailable</td>
+                                    <td>
+                                        <a asp-action="EditTicket" asp-route-ticketId="@ticket.Id" class="btn btn-sm btn-warning">Sửa</a>
+                                        <form asp-action="DeleteTicket" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa vé @ticket.Name?');">
+                                            <input type="hidden" name="ticketId" value="@ticket.Id" />
+                                            <input type="hidden" name="eventId" value="@Model.Event.Id" />
+                                            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>@ticket.Name</td>
-                                <td>@ticket.Price.ToString("N0") VNĐ</td>
-                                <td>@ticket.QuantityAvailable</td>
+                                <td colspan="4" class="text-center text-muted">Chưa có vé nào.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="3" class="text-center text-muted">Chưa có vé nào.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
 
-            <!-- FORM 2: THÊM NHANH VÉ MỚI -->
-            <h5 class="mt-4">Thêm nhanh vé mới</h5>
-            @if (TempData["TicketCreationError"] != null)
+                <!-- FORM 2: THÊM NHANH VÉ MỚI -->
+                <h5 class="mt-4">Thêm nhanh vé mới</h5>
+                @if (TempData["TicketCreationError"] != null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @TempData["TicketCreationError"]
+                    </div>
+                }
+                @if (TempData["TicketCreationMessage"] != null)
+                {
+                    <div class="alert alert-success" role="alert">
+                        @TempData["TicketCreationMessage"]
+                    </div>
+                }
+                <form asp-action="AddTicket" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="NewTicket.EventId" />
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-4">
+                            <label asp-for="NewTicket.Name" class="form-label">Tên loại vé</label>
+                            <input asp-for="NewTicket.Name" class="form-control" placeholder="Vd: Vé VIP" />
+                            <span asp-validation-for="NewTicket.Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="NewTicket.Price" class="form-label">Giá</label>
+                            <input asp-for="NewTicket.Price" class="form-control" type="number" min="0" />
+                            <span asp-validation-for="NewTicket.Price" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="NewTicket.QuantityAvailable" class="form-label">Số lượng</label>
+                            <input asp-for="NewTicket.QuantityAvailable" class="form-control" type="number" min="0" />
+                            <span asp-validation-for="NewTicket.QuantityAvailable" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="submit" value="Thêm Vé" class="btn btn-success w-100" />
+                        </div>
+                    </div>
+                </form>
+
+                <!-- FORM 3: CHỈNH SỬA VÉ -->
+                @if (ViewData["EditingTicket"] != null)
+                {
+                    var editingTicket = ViewData["EditingTicket"] as BTL.Models.Ticket;
+                    <hr class="my-4" />
+                    <h5 class="mt-4">Chỉnh sửa vé</h5>
+                    <form asp-action="EditTicket" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" name="ticketId" value="@editingTicket.Id" />
+                        <input type="hidden" name="eventId" value="@Model.Event.Id" />
+                        <div class="row align-items-end g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Tên loại vé</label>
+                                <input name="Name" value="@editingTicket.Name" class="form-control" placeholder="Vd: Vé VIP" />
+                                <span class="text-danger" data-valmsg-for="Name"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Giá</label>
+                                <input name="Price" value="@editingTicket.Price" class="form-control" type="number" min="0" />
+                                <span class="text-danger" data-valmsg-for="Price"></span>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Số lượng</label>
+                                <input name="QuantityAvailable" value="@editingTicket.QuantityAvailable" class="form-control" type="number" min="0" />
+                                <span class="text-danger" data-valmsg-for="QuantityAvailable"></span>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="submit" value="Lưu thay đổi" class="btn btn-primary w-100" />
+                            </div>
+                        </div>
+                    </form>
+                }
+            }
+            else
             {
-                <div class="alert alert-danger" role="alert">
-                    @TempData["TicketCreationError"]
+                <div class="alert alert-warning" role="alert">
+                    Bạn không có quyền chỉnh sửa sự kiện này.
                 </div>
             }
-            <form asp-action="AddTicket" method="post">
-                <input type="hidden" asp-for="NewTicket.EventId" />
-                <div class="row align-items-end g-3">
-                    <div class="col-md-4">
-                        <label asp-for="NewTicket.Name" class="form-label">Tên loại vé</label>
-                        <input asp-for="NewTicket.Name" class="form-control" placeholder="Vd: Vé VIP" />
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="NewTicket.Price" class="form-label">Giá</label>
-                        <input asp-for="NewTicket.Price" class="form-control" />
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="NewTicket.QuantityAvailable" class="form-label">Số lượng</label>
-                        <input asp-for="NewTicket.QuantityAvailable" class="form-control" />
-                    </div>
-                    <div class="col-md-2">
-                        <input type="submit" value="Thêm Vé" class="btn btn-success w-100" />
-                    </div>
-                </div>
-            </form>
-
         </div>
     </div>
 </div>

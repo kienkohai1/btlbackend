@@ -1,7 +1,7 @@
-﻿@model IEnumerable<BTL.Models.Event>
-
-@{
+﻿@{
     ViewData["Title"] = "Trang Chủ";
+    var eventsWithTickets = ViewBag.EventsWithTickets;
+    var searchQuery = ViewBag.SearchQuery ?? "";
 }
 
 <div class="hero-banner text-center text-white">
@@ -12,28 +12,43 @@
 </div>
 
 <div class="container mt-5">
+    <!-- Biểu mẫu tìm kiếm -->
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+            <form asp-action="Index" asp-controller="Home" method="get" class="d-flex align-items-center">
+                <div class="input-group flex-grow-1">
+                    <input type="text" name="searchQuery" class="form-control" placeholder="Tìm kiếm sự kiện theo tên" value="@searchQuery" />
+                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="row">
-        @if (Model != null && Model.Any())
+        @if (eventsWithTickets != null && eventsWithTickets.Count > 0)
         {
-            @foreach (var item in Model)
+            @foreach (var item in eventsWithTickets)
             {
+                var eventItem = item.Event;
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card event-card h-100">
-                        <a asp-controller="Events" asp-action="Details" asp-route-id="@item.Id" class="event-card-link">
-                            <img src="@item.ImagePath" class="card-img-top" alt="Hình ảnh sự kiện @item.Name">
+                        <a asp-controller="Events" asp-action="Details" asp-route-id="@eventItem.Id" class="event-card-link">
+                            <img src="@(eventItem.ImagePath ?? "/images/default.jpg")" class="card-img-top" alt="Hình ảnh sự kiện @eventItem.Name">
                             <div class="card-body">
-                                <h5 class="card-title">@item.Name</h5>
+                                <h5 class="card-title">@eventItem.Name</h5>
                                 <p class="card-text text-muted">
-                                    <i class="bi bi-calendar-event"></i> @item.DateTime.ToString("dd/MM/yyyy")
+                                    <i class="bi bi-calendar-event"></i> @eventItem.DateTime.ToString("dd/MM/yyyy")
                                 </p>
                                 <p class="card-text text-muted">
-                                    <i class="bi bi-geo-alt-fill"></i> @item.Location
+                                    <i class="bi bi-geo-alt-fill"></i> @eventItem.Location
+                                </p>
+                                <p class="card-text text-muted">
+                                    <i class="bi bi-ticket"></i> Số vé còn lại: @item.TotalTicketsAvailable
                                 </p>
                             </div>
                         </a>
                         <div class="card-footer text-center">
-                            <a asp-controller="Events" asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary w-100">Mua Vé</a>
+                            <a asp-controller="Events" asp-action="Details" asp-route-id="@eventItem.Id" class="btn btn-primary w-100">Mua Vé</a>
                         </div>
                     </div>
                 </div>

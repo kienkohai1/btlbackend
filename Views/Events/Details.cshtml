@@ -61,12 +61,14 @@
                                     <tr>
                                         <td class="ticket-name">
                                             <strong>@ticket.Name</strong>
+                                            <br />
+                                            <small class="text-muted">Còn lại: @ticket.QuantityAvailable vé</small>
                                         </td>
                                         <td class="ticket-price">
                                             @ticket.Price.ToString("N0") VNĐ
                                         </td>
                                         <td class="ticket-action">
-                                            <a asp-controller="ShoppingCart" asp-action="AddToCart" asp-route-ticketId="@ticket.Id" class="btn btn-sm btn-primary">
+                                            <a asp-controller="ShoppingCart" asp-action="AddToCart" asp-route-ticketId="@ticket.Id" class="btn btn-sm btn-primary @(ticket.QuantityAvailable == 0 ? "disabled" : "")">
                                                 Chọn
                                             </a>
                                         </td>
